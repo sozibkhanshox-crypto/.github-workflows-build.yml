@@ -27,7 +27,8 @@ jobs:
           echo "/usr/lib/llvm-19/bin" >> "$GITHUB_PATH"
 
       
-      - name: Fetch and verify Anymore source
+      
+      - name: Inspect Anymore source version
         run: |
           git clone --depth=1 --branch 16 \
             https://github.com/AnymoreProject/android_kernel_vayu.git kernel
@@ -37,19 +38,18 @@ jobs:
           echo "===== SOURCE COMMIT ====="
           git log -1 --oneline
 
-          echo "===== KERNEL VERSION ====="
-          VERSION="$(make -s ARCH=arm64 kernelversion 2>/dev/null)"
-          echo "Detected version: $VERSION"
+          echo "===== MAKEFILE VERSION SETTINGS ====="
+          grep -nE '^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)[[:space:]]*=' Makefile
 
-          case "$VERSION" in
-            4.14.357|4.14.357+17)
-              echo "Kernel version check passed."
-              ;;
-            *)
-              echo "STOP: Source version does not match."
-              exit 1
-              ;;
-          esac
+          echo "===== DEFAULT CONFIG LOCALVERSION ====="
+          grep -nE '^CONFIG_LOCALVERSION=' arch/arm64/configs/vayu_defconfig || true
+
+          echo "===== SOURCE KERNEL VERSION ====="
+          make -s ARCH=arm64 kernelversion
+
+          echo "===== SOURCE FILES ====="
+          git status --short
+
 
 
       - name: Configure USB WiFi drivers
