@@ -85,4 +85,4 @@ jobs:
             kernel/out/arch/arm64/boot/Image
             kernel/out/arch/arm64/boot/dts/qcom/*.dtb
             kernel/out/.config
-                        kernel/out/**/*.ko
+            kernel/out/**/*.ko
