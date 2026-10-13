@@ -1,0 +1,87 @@
+
+name: Build Anymore Vayu USB WiFi Kernel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential bc bison flex libssl-dev libelf-dev \
+            python3 perl git rsync cpio zip unzip \
+            device-tree-compiler gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabi curl ca-certificates
+
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 19
+          sudo apt-get install -y clang-19 lld-19 llvm-19
+          echo "/usr/lib/llvm-19/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Anymore kernel source
+        run: |
+          git init kernel
+          cd kernel
+          git remote add origin https://github.com/AnymoreProject/kernel_xiaomi_vayu.git
+          git fetch --depth=1 origin 1a8475f82a6f043690365f77836bc26f0f29c46c
+          git checkout --detach FETCH_HEAD
+
+      - name: Configure USB WiFi drivers
+        run: |
+          cd kernel
+          make O=out ARCH=arm64 HOSTCC=gcc vayu_defconfig
+
+          scripts/config --file out/.config --enable CFG80211
+          scripts/config --file out/.config --enable MAC80211
+          scripts/config --file out/.config --enable USB
+          scripts/config --file out/.config --enable WLAN
+          scripts/config --file out/.config --enable FW_LOADER
+          scripts/config --file out/.config --enable EEPROM_93CX6
+          scripts/config --file out/.config --enable ATH9K_HW
+          scripts/config --file out/.config --enable ATH9K_COMMON
+          scripts/config --file out/.config --enable ATH9K_HTC
+          scripts/config --file out/.config --enable RT2X00
+          scripts/config --file out/.config --enable RT2X00_LIB_USB
+          scripts/config --file out/.config --enable RT2800USB
+          scripts/config --file out/.config --enable RTL8187
+
+          make O=out ARCH=arm64 HOSTCC=gcc olddefconfig
+
+          for option in MAC80211 ATH9K_HTC RTL8187 RT2X00 RT2800USB; do
+            grep -qx "CONFIG_${option}=y" out/.config || {
+              echo "ERROR: CONFIG_${option} is not enabled"
+              exit 1
+            }
+          done
+
+      - name: Build kernel image and device trees
+        run: |
+          cd kernel
+          make O=out ARCH=arm64 HOSTCC=gcc \
+            LLVM=1 LLVM_IAS=1 \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            -j2 Image dtbs
+
+          test -s out/arch/arm64/boot/Image
+          echo "Kernel image built successfully."
+          ls -lh out/arch/arm64/boot/Image
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vayu-kernel-build
+          if-no-files-found: error
+          path: |
+            kernel/out/arch/arm64/boot/Image
+            kernel/out/arch/arm64/boot/dts/qcom/*.dtb
+            kernel/out/.config
