@@ -48,7 +48,7 @@ jobs:
           scripts/config --file out/.config --enable EEPROM_93CX6
           scripts/config --file out/.config --enable ATH9K_HW
           scripts/config --file out/.config --enable ATH9K_COMMON
-          scripts/config --file out/.config --enable ATH9K_HTC
+          scripts/config --file out/.config --module ATH9K_HTC
           scripts/config --file out/.config --enable RT2X00
           scripts/config --file out/.config --enable RT2X00_LIB_USB
           scripts/config --file out/.config --enable RT2800USB
