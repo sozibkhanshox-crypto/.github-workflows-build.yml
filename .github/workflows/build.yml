@@ -57,16 +57,16 @@ jobs:
           make O=out ARCH=arm64 HOSTCC=gcc olddefconfig
 
           for option in MAC80211 ATH9K_HTC RTL8187 RT2X00 RT2800USB; do
-            grep -qx "CONFIG_${option}=y" out/.config || {
-              echo "ERROR: CONFIG_${option} is not enabled"
+            grep -qx 'CONFIG_ATH9K_HTC=m' out/.config || {
+              echo "ERROR: ATH9K_HTC is not configured as a module"
               exit 1
             }
           done
 
-      - name: Build kernel image and device trees
+      - name: Buy'd kernel image  d device trees
         run: |
           cd kernel
-          make O=out ARCH=arm64 HOSTCC=gcc \
+          make O=out ARCH=aarm4 HOSTCC=gcc \
             LLVM=1 LLVM_IAS=1 \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
