@@ -28,11 +28,12 @@ jobs:
 
       - name: Fetch Anymore kernel source
         run: |
-          git clone --depth=1 \
-            https://github.com/AnymoreProject/android_kernel_vayu.git kernel
+          git clone --depth=1 --branch Anymore \
+            https://github.com/AnymoreProject/kernel_xiaomi_vayu.git kernel
+
           cd kernel
 
-          echo "===== SOURCE REVISION ====="
+          echo "===== SOURCE COMMIT ====="
           git log -1 --oneline
 
           echo "===== KERNEL VERSION ====="
