@@ -75,7 +75,10 @@ jobs:
           test -s out/arch/arm64/boot/Image
           echo "Kernel image built successfully."
           ls -lh out/arch/arm64/boot/Image
-          
+
+      - name: Copy kernel configuration
+        run: |
+          cp kernel/out/.config kernel/out/kernel-config.txt
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
