@@ -87,3 +87,4 @@ jobs:
             kernel/out/arch/arm64/boot/dts/qcom/*.dtb
             kernel/out/.config
             kernel/out/**/*.ko
+            include-hidden-files: true
