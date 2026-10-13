@@ -26,10 +26,11 @@ jobs:
           sudo apt-get install -y clang-19 lld-19 llvm-19
           echo "/usr/lib/llvm-19/bin" >> "$GITHUB_PATH"
 
-      - name: Fetch Anymore kernel source
+      
+      - name: Fetch and verify Anymore source
         run: |
-          git clone --depth=1 --branch Anymore \
-            https://github.com/AnymoreProject/kernel_xiaomi_vayu.git kernel
+          git clone --depth=1 --branch 16 \
+            https://github.com/AnymoreProject/android_kernel_vayu.git kernel
 
           cd kernel
 
@@ -37,13 +38,19 @@ jobs:
           git log -1 --oneline
 
           echo "===== KERNEL VERSION ====="
-          make ARCH=arm64 kernelversion
+          VERSION="$(make -s ARCH=arm64 kernelversion 2>/dev/null)"
+          echo "Detected version: $VERSION"
 
-          VERSION="$(make ARCH=arm64 kernelversion)"
-          if [ "$VERSION" != "4.14.357" ]; then
-            echo "ERROR: Expected kernel 4.14.357, found $VERSION"
-            exit 1
-          fi
+          case "$VERSION" in
+            4.14.357|4.14.357+17)
+              echo "Kernel version check passed."
+              ;;
+            *)
+              echo "STOP: Source version does not match."
+              exit 1
+              ;;
+          esac
+
 
       - name: Configure USB WiFi drivers
         run: |
