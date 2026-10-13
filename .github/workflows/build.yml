@@ -70,7 +70,7 @@ jobs:
             LLVM=1 LLVM_IAS=1 \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-            -j2 Image dtbs
+            -j2 Image dtbs modules
 
           test -s out/arch/arm64/boot/Image
           echo "Kernel image built successfully."
